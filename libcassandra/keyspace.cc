@@ -190,6 +190,28 @@ SuperColumn Keyspace::getSuperColumn(const string &key,
   return cosc.super_column;
 }
 
+ColumnOrSuperColumn Keyspace::getColumnOrSuperColumn(const string &key,
+                           const string &column_family,
+                           const string &super_column_name,
+                           const string &column_name)
+{
+  ColumnPath col_path;
+  col_path.column_family.assign(column_family);
+  if (! super_column_name.empty())
+  {
+    col_path.super_column.assign(super_column_name);
+    col_path.__isset.super_column= true;
+  }
+  if (! column_name.empty())
+  {
+    col_path.column.assign(column_name);
+    col_path.__isset.column= true;
+  }
+  validateColumnPath(col_path);
+  ColumnOrSuperColumn result;
+  client->getCassandra()->get(result, name, key, col_path, level);
+  return result;
+}
 
 vector<Column> Keyspace::getSliceNames(const string &key,
                                        const ColumnParent &col_parent,
@@ -234,6 +256,16 @@ vector<Column> Keyspace::getSliceRange(const string &key,
   return result;
 }
 
+vector<ColumnOrSuperColumn> Keyspace::getColumnOrSuperColumnSliceRange(const string &key,
+                                       const ColumnParent &col_parent,
+                                       SlicePredicate &pred)
+{
+  vector<ColumnOrSuperColumn> result;
+  /* damn you thrift! */
+  pred.__isset.slice_range= true;
+  client->getCassandra()->get_slice(result, name, key, col_parent, pred, level);
+  return result;
+}
 
 map<string, vector<Column> > Keyspace::getRangeSlice(const ColumnParent &col_parent,
                                                      const SlicePredicate &pred,

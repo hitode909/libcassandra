@@ -164,11 +164,20 @@ public:
                                                      const std::string &column_family,
                                                      const std::string &super_column_name);
 
+  org::apache::cassandra::ColumnOrSuperColumn getColumnOrSuperColumn(const std::string &key,
+                                                                     const std::string &column_family,
+                                                                     const std::string &super_column_name,
+                                                                     const std::string &column_name);
+
   std::vector<org::apache::cassandra::Column> getSliceNames(const std::string &key,
                                                             const org::apache::cassandra::ColumnParent &col_parent,
                                                             org::apache::cassandra::SlicePredicate &pred);
 
   std::vector<org::apache::cassandra::Column> getSliceRange(const std::string &key,
+                                                            const org::apache::cassandra::ColumnParent &col_parent,
+                                                            org::apache::cassandra::SlicePredicate &pred);
+
+  std::vector<org::apache::cassandra::ColumnOrSuperColumn> getColumnOrSuperColumnSliceRange(const std::string &key,
                                                             const org::apache::cassandra::ColumnParent &col_parent,
                                                             org::apache::cassandra::SlicePredicate &pred);
 
