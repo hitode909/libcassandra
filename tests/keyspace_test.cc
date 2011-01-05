@@ -17,7 +17,7 @@
 
 using namespace std;
 using namespace libcassandra;
-
+using namespace org::apache::cassandra;
 
 class KeyspaceTest : public testing::Test
 {
@@ -92,4 +92,28 @@ TEST_F(KeyspaceTest, DeleteSuperColumn)
   tr1::shared_ptr<Keyspace> ks= c->getKeyspace(ks_name);
   ks->removeSuperColumn("teeny", "Super1", "padraig");
   ASSERT_THROW(ks->getColumnValue("teeny", "Super1", "padraig", "third"), org::apache::cassandra::NotFoundException);
+}
+
+TEST_F(KeyspaceTest, GetColumnWithGetColumnOrSuperColumn)
+{
+  tr1::shared_ptr<Keyspace> ks= c->getKeyspace(ks_name);
+  const string mock_data("this is mock data being inserted...");
+  ks->insertColumn("sarah", "Standard1", "third", mock_data);
+  ColumnOrSuperColumn res= ks->getColumnOrSuperColumn("sarah", "Standard1", "", "third");
+  EXPECT_TRUE(res.super_column.name.empty());
+  EXPECT_EQ("third", res.column.name);
+  EXPECT_EQ(mock_data, res.column.value);
+}
+
+TEST_F(KeyspaceTest, GetSuperColumnWithGetColumnOrSuperColumn)
+{
+  tr1::shared_ptr<Keyspace> ks= c->getKeyspace(ks_name);
+  const string mock_data("this is mock data being inserted...");
+  ks->insertColumn("sarah", "Super1", "super", "third", mock_data);
+  ColumnOrSuperColumn res= ks->getColumnOrSuperColumn("sarah", "Super1", "super", "");
+  EXPECT_TRUE(res.column.name.empty());
+  EXPECT_EQ("super", res.super_column.name);
+  EXPECT_EQ(1, res.super_column.columns.size());
+  EXPECT_EQ("third", res.super_column.columns[0].name);
+  EXPECT_EQ(mock_data, res.super_column.columns[0].value);
 }
